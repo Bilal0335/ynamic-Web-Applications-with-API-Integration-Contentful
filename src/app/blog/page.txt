@@ -1,0 +1,146 @@
+import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
+const getBlogdata = async () => {
+  try {
+    const blogData = await fetch(
+      `https://cdn.contentful.com/spaces/30zidt4sr9zx/entries?access_token=Qcml2w53Up9sStr7T4Kd9XCWanMmcYxf1-3rIc-XGdQ&content_type=blog`,
+      { cache: "no-store" }
+    );
+    if (!blogData.ok) {
+      throw new Error("Failed to load data!");
+    }
+    return blogData.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+const Blog = async () => {
+  const blogsData = await getBlogdata();
+
+  // Check if there is data before rendering
+  if (!blogsData) {
+    return <p>Failed to load blog posts.</p>;
+  }
+
+  return (
+    <div>
+      {blogsData.items.map((blog: any) => {
+        // Use find to get a single matching asset
+        const blogImage = blogsData.includes.Asset.filter(
+          (img: any) => img.sys.id === blog.fields.image.sys.id
+        );
+        const authorName = blogsData.includes.Entry.filter(
+          (author: any) => author.sys.id === blog.fields.author.sys.id
+        );
+        console.log(authorName);
+        // Safely access the image URL
+        const imgUrl = blogImage?.fields?.file?.url
+          ? `https:${blogImage.fields.file.url}`
+          : null;
+
+        if (!imgUrl) {
+          console.error("Image URL not found for blog:", blog.sys.id);
+        }
+
+        return (
+          <div key={blog.sys.id}>
+            <h1 className="text-3xl font-bold">{blog.fields.title}</h1>
+            <div>
+              {/* Render the blog body */}
+              <p>{documentToReactComponents(blog.fields.body)}</p>
+              <br />
+              {/* Render the image or fallback */}
+              {imgUrl ? (
+                <img src={imgUrl} alt={blog.fields.title} className="w-full" />
+              ) : (
+                <p>Image not available.</p>
+              )}
+              <br />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default Blog;
+
+
+or
+
+
+import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
+
+const getBlogdata = async () => {
+  try {
+    const blogData = await fetch(
+      `https://cdn.contentful.com/spaces/30zidt4sr9zx/entries?access_token=Qcml2w53Up9sStr7T4Kd9XCWanMmcYxf1-3rIc-XGdQ&content_type=blog`,
+      { cache: "no-store" }
+    );
+    if (!blogData.ok) {
+      throw new Error("Failed to load data!");
+    }
+    return blogData.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
+const Blog = async () => {
+  const blogsData = await getBlogdata();
+
+  // Check if there is data before rendering
+  if (!blogsData) {
+    return <p>Failed to load blog posts.</p>;
+  }
+
+  return (
+    <div>
+      {blogsData.items.map((blog: any) => {
+        // Use filter to get a matching asset for the image (since filter returns an array)
+        const blogImage = blogsData.includes.Asset.filter(
+          (img: any) => img.sys.id === blog.fields.image.sys.id
+        );
+
+        // Use filter to get a matching entry for the author (since filter returns an array)
+        const author = blogsData.includes.Entry.filter(
+          (author: any) => author.sys.id === blog.fields.author.sys.id
+        );
+
+        // Safely access the image URL, check if the filtered array has results
+        const imgUrl = blogImage.length > 0 ? `https:${blogImage[0].fields.file.url}` : null;
+
+        // Safely access the author's name, check if the filtered array has results
+        const authorName = author.length > 0 ? author[0].fields.name : "Unknown Author";
+
+        if (!imgUrl) {
+          console.error("Image URL not found for blog:", blog.sys.id);
+        }
+
+        return (
+          <div key={blog.sys.id}>
+            <h1 className="text-3xl font-bold">{blog.fields.title}</h1>
+            <h2 className="text-gray-500 font-semibold">By {authorName}</h2> {/* Display author name */}
+            <div>
+              {/* Render the blog body */}
+              <p>{documentToReactComponents(blog.fields.body)}</p>
+              <br />
+              {/* Render the image or fallback */}
+              {imgUrl ? (
+                <img src={imgUrl} alt={blog.fields.title} className="w-full" />
+              ) : (
+                <p>Image not available.</p>
+              )}
+              <br />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+export default Blog;

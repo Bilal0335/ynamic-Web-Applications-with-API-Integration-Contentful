@@ -1,4 +1,5 @@
 import { documentToReactComponents } from "@contentful/rich-text-react-renderer";
+
 const getBlogdata = async () => {
   try {
     const blogData = await fetch(
@@ -26,15 +27,23 @@ const Blog = async () => {
   return (
     <div>
       {blogsData.items.map((blog: any) => {
-        // Use find to get a single matching asset
+        // Use find to get a single matching asset for the image
         const blogImage = blogsData.includes.Asset.find(
           (img: any) => img.sys.id === blog.fields.image.sys.id
+        );
+
+        // Use find to get a single matching entry for the author
+        const author = blogsData.includes.Entry.find(
+          (author: any) => author.sys.id === blog.fields.author.sys.id
         );
 
         // Safely access the image URL
         const imgUrl = blogImage?.fields?.file?.url
           ? `https:${blogImage.fields.file.url}`
           : null;
+
+        // Safely access the author's name
+        const authorName = author?.fields?.name || "Unknown Author";
 
         if (!imgUrl) {
           console.error("Image URL not found for blog:", blog.sys.id);
@@ -43,6 +52,7 @@ const Blog = async () => {
         return (
           <div key={blog.sys.id}>
             <h1 className="text-3xl font-bold">{blog.fields.title}</h1>
+            <h2 className="text-gray-500 font-semibold">By {authorName}</h2> {/* Display author name */}
             <div>
               {/* Render the blog body */}
               <p>{documentToReactComponents(blog.fields.body)}</p>
